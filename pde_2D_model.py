@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 
 
-
 def normal_density_function(x, mean, standard_deviation):
     return np.exp(-(x - mean)**2 / (2 * standard_deviation**2)) / (standard_deviation * np.sqrt(2 * np.pi))
+
 
 def initial_conditions(parameters):
 
@@ -26,14 +26,15 @@ def initial_conditions(parameters):
         # S is Gaussian distributed
         S = np.zeros(space_points)
         for i in range(space_points):
-            S[i] = normal_density_function(X[i], mean, standard_deviation_S)          
+            S[i] = normal_density_function(X[i], mean, standard_deviation_S)
     elif S0_distribution == 'concentrated':
         S = np.zeros(space_points)
         S[space_points//2] = 1
         S[space_points//2 + 1] = 1
         S[space_points//2 - 1] = 1
     else:
-        raise ValueError('S0_distribution must be uniform or normal or concentrated')
+        raise ValueError(
+            'S0_distribution must be uniform or normal or concentrated')
 
     if R0_distribution == 'uniform':
         R = np.random.uniform(0, 1, space_points)
@@ -62,6 +63,7 @@ def initial_conditions(parameters):
 
     return S, R, N
 
+
 def therapy_drug_concentration(S, R, parameters):
 
     N = np.trapz(S + R, dx=parameters['space_step'])
@@ -80,9 +82,10 @@ def therapy_drug_concentration(S, R, parameters):
         else:
             return 0
     else:
-        raise ValueError('therapy_type must be continuous, notherapy or adaptive')
+        raise ValueError(
+            'therapy_type must be continuous, notherapy or adaptive')
 
-    
+
 def compute_diffusion(S, R, parameters):
 
     diffusion_type = parameters['diffusion_type']
@@ -91,8 +94,10 @@ def compute_diffusion(S, R, parameters):
         space_step = parameters['space_step']
         diffusion_coefficient_S = parameters['diffusion_coefficient_S']
         diffusion_coefficient_R = parameters['diffusion_coefficient_R']
-        diffusion_S = diffusion_coefficient_S * (S[-1] - 2 * S[0] + S[1]) / space_step**2
-        diffusion_R = diffusion_coefficient_R * (R[-1] - 2 * R[0] + R[1]) / space_step**2
+        diffusion_S = diffusion_coefficient_S * \
+            (S[-1] - 2 * S[0] + S[1]) / space_step**2
+        diffusion_R = diffusion_coefficient_R * \
+            (R[-1] - 2 * R[0] + R[1]) / space_step**2
 
         return diffusion_S, diffusion_R
 
@@ -105,16 +110,19 @@ def compute_diffusion(S, R, parameters):
         carrying_capacity_R = parameters['carrying_capacity_R']
         diffusion_coefficient_S = parameters['diffusion_coefficient_S']
         diffusion_coefficient_R = parameters['diffusion_coefficient_R']
-        effective_diffusion_coefficient_S = diffusion_coefficient_S * (1 - S[0] / carrying_capacity_S)
-        effective_diffusion_coefficient_R = diffusion_coefficient_R * (1 - R[0] / carrying_capacity_R)
-        diffusion_S = effective_diffusion_coefficient_S * (S[-1] - 2 * S[0] + S[1]) / space_step**2
-        diffusion_R = effective_diffusion_coefficient_R * (R[-1] - 2 * R[0] + R[1]) / space_step**2
+        effective_diffusion_coefficient_S = diffusion_coefficient_S * \
+            (1 - S[0] / carrying_capacity_S)
+        effective_diffusion_coefficient_R = diffusion_coefficient_R * \
+            (1 - R[0] / carrying_capacity_R)
+        diffusion_S = effective_diffusion_coefficient_S * \
+            (S[-1] - 2 * S[0] + S[1]) / space_step**2
+        diffusion_R = effective_diffusion_coefficient_R * \
+            (R[-1] - 2 * R[0] + R[1]) / space_step**2
         return diffusion_S, diffusion_R
 
     else:
         raise ValueError('diffusion_type must be standard, none or special')
 
-    
 
 def boundary_conditions(S_old, R_old, parameters):
 
@@ -126,31 +134,29 @@ def boundary_conditions(S_old, R_old, parameters):
         S_right = parameters['S0_right']
         R_right = parameters['R0_right']
 
+    # Neumann boundary conditions read NSPDE on how to implement them
     elif time_boundary_conditions == 'Neumann':
         time_step = parameters['time_step']
-        S_left = S_old[0] + parameters['S0_left'] * time_step
-        R_left = R_old[0] + parameters['R0_left'] * time_step
-        S_right = S_old[-1] + parameters['S0_right'] * time_step
-        R_right = R_old[-1] + parameters['R0_right'] * time_step
+        S_left = S_old[0]/2 + S_old[1]/2 + parameters['S0_left'] * time_step
+        R_left = R_old[0]/2 + R_old[1]/2 + parameters['R0_left'] * time_step
+        S_right = S_old[-1]/2 + S_old[-2]/2 + parameters['S0_right'] * time_step
+        R_right = R_old[-1] + R_old[-2]/2 + parameters['R0_right'] * time_step
 
     else:
-        raise ValueError('time_boundary_conditions must be Dirichlet or Neumann')
+        raise ValueError(
+            'time_boundary_conditions must be Dirichlet or Neumann')
 
     return S_left, R_left, S_right, R_right
-        
-
-
 
 
 def one_step(S_old, R_old, parameters):
-
 
     # initialize new arrays
     S = np.zeros(len(S_old))
     R = np.zeros(len(R_old))
     N = np.zeros(len(S_old))
     maximum_tollerated_dose = parameters['maximum_tollerated_dose']
-    
+
     # boundary conditions
     S[0], R[0], S[-1], R[-1] = boundary_conditions(S_old, R_old, parameters)
     N[0] = S[0] + R[0]
@@ -165,25 +171,33 @@ def one_step(S_old, R_old, parameters):
     death_rate_S = parameters['death_rate_S']
     death_rate_R = parameters['death_rate_R']
     maximum_tollerated_dose = parameters['maximum_tollerated_dose']
-    D = therapy_drug_concentration(S_old, R_old, parameters)/maximum_tollerated_dose
+    D = therapy_drug_concentration(
+        S_old, R_old, parameters)/maximum_tollerated_dose
 
     for i in range(1, len(S_old)-1):
 
         current_carrying_capacity = (S_old[i] + R_old[i]) / carrying_capacity
-        effective_growth_rate_S = growth_rate_S * (1 - current_carrying_capacity) * (1 - 2 * division_rate * D)
-        effective_growth_rate_R = growth_rate_R * (1 - current_carrying_capacity)
-        
-        dS = effective_growth_rate_S + death_rate_S
-        dR = effective_growth_rate_R + death_rate_R
+        effective_growth_rate_S = growth_rate_S * \
+            (1 - current_carrying_capacity) * (1 - 2 * division_rate * D)
+        effective_growth_rate_R = growth_rate_R * \
+            (1 - current_carrying_capacity)
 
-        diffusion_S, diffusion_R = compute_diffusion(S_old[i-1:i+1], R_old[i-1:i+1], parameters)
+        dS = effective_growth_rate_S - death_rate_S
+        dR = effective_growth_rate_R - death_rate_R
+
+        diffusion_S, diffusion_R = compute_diffusion(
+            S_old[i-1:i+1], R_old[i-1:i+1], parameters)
 
         S[i] = S_old[i] + time_step * (dS * S_old[i] + diffusion_S)
         R[i] = R_old[i] + time_step * (dR * R_old[i] + diffusion_R)
 
+    tolerance = parameters['tolerance']
+    mask_S = S < tolerance
+    mask_R = R < tolerance
+    S[mask_S] = 0
+    R[mask_R] = 0
+
     return S, R, N, D
-
-
 
 
 def pde_2D_model(parameters):
@@ -211,68 +225,69 @@ def pde_2D_model(parameters):
     S[:, index], R[:, index], N[:, index] = initial_conditions(parameters)
 
     for t in T[1:]:
-        S[:, index + 1], R[:, index + 1], N[:, index + 1], D[index + 1] = one_step(S[:, index], R[:, index], parameters)
+        S[:, index + 1], R[:, index + 1], N[:, index + 1], D[index +
+                                                             1] = one_step(S[:, index], R[:, index], parameters)
         index += 1
-    
+
     return S, R, N, D, X, T
 
+# plot the results
+    fig, ax = plt.subplots()
+    ax.set_xlabel('X')
+    ax.set_ylabel('S')
+    plotLine, = ax.plot(X, np.zeros(len(X))*np.NaN, 'r-')
+    plotTitle = ax.set_title("t=0")
+    ax.set_ylim(0, 2)
+    ax.set_xlim(parameters['space_start'], parameters['space_end'])
 
+    def animate(t):
+        pp = S[:, t]
+        plotLine.set_ydata(pp)
+        plotTitle.set_text(f"t = {t:.1f}")
+        # ax.relim() # use if autoscale desired
+        # ax.autoscale()
+        return [plotLine, plotTitle]
+
+    ani = animation.FuncAnimation(
+        fig, func=animate, frames=np.arange(len(T)), blit=True)
+    ani.save('pde_2D_model.gif', fps=30)
+    plt.show()
 
 
 if __name__ == '__main__':
 
     parameters = {
-        'time_start': 0,                                  
-        'time_end': 10,
+        'time_start': 0,
+        'time_end': 1,
         'time_points': 1000,
         'space_start': 0,
-        'space_end': 10,
+        'space_end': 1,
         'space_points': 1000,
-        'tolerance': 100,
+        'tolerance': 0.0000001,
         'S0': 1.4,
         'R0': 0.01,
         'S0_distribution': 'uniform',
         'R0_distribution': 'uniform',
         'growth_rate_S': 0.03,
         'growth_rate_R': 0.03,
-        'carrying_capacity': 10,
-        'diffusion_coefficient_S': -0.1,
-        'diffusion_coefficient_R': -0.1,
-        'maximum_tollerated_dose': 0.8,
+        'carrying_capacity': 1,
+        'diffusion_coefficient_S': 0.001,
+        'diffusion_coefficient_R': 0.001,
+        'maximum_tollerated_dose': 1,
         'death_rate_S': 0.03,
-        'death_rate_R': 0.02,
-        'division_rate': 0.04,
+        'death_rate_R': 0.03,
+        'division_rate': 0.4,
         'therapy_type': 'continuous',
-        'time_boundary_conditions': 'Dirichlet',
+        'time_boundary_conditions': 'Neumann',
         'S0_left': 0,
         'R0_left': 0,
         'S0_right': 0,
         'R0_right': 0,
-        'diffusion_type': 'standard'
-        }
+        'diffusion_type': 'none'
+    }
 
     S, R, N, D, X, T = pde_2D_model(parameters)
 
-    # plot the results
-    fig, ax = plt.subplots()
-    ax.set_xlabel('X')
-    ax.set_ylabel('S')
-    plotLine, = ax.plot(X, np.zeros(len(X))*np.NaN, 'r-')
-    plotTitle = ax.set_title("t=0")
-    ax.set_ylim(0,2)
-    ax.set_xlim(parameters['space_start'],parameters['space_end'])
-
-    def animate(t):
-        pp = S[:,t]
-        plotLine.set_ydata(pp)
-        plotTitle.set_text(f"t = {t:.1f}")
-        #ax.relim() # use if autoscale desired
-        #ax.autoscale()
-        return [plotLine,plotTitle]
-    
-    ani = animation.FuncAnimation(fig, func=animate, frames= np.arange(len(T)), blit=True)
-    ani.save('pde_2D_model.gif', fps=30)
-    plt.show()
-    
-
-
+    print(S[:, 0])
+    print(S[:, 5])
+    print(S[:, 600]-S[:, 599])
