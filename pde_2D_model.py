@@ -95,9 +95,12 @@ def compute_diffusion(S, R, parameters):
         diffusion_coefficient_S = parameters['diffusion_coefficient_S']
         diffusion_coefficient_R = parameters['diffusion_coefficient_R']
         diffusion_S = diffusion_coefficient_S * \
-            (S[-1] - 2 * S[0] + S[1]) / space_step**2
+            (S[0] - 2 * S[1] + S[2]) / space_step**2
         diffusion_R = diffusion_coefficient_R * \
-            (R[-1] - 2 * R[0] + R[1]) / space_step**2
+            (R[0] - 2 * R[1] + R[2]) / space_step**2
+        
+        if diffusion_S > 100000:
+            print(diffusion_S)
 
         return diffusion_S, diffusion_R
 
@@ -111,13 +114,13 @@ def compute_diffusion(S, R, parameters):
         diffusion_coefficient_S = parameters['diffusion_coefficient_S']
         diffusion_coefficient_R = parameters['diffusion_coefficient_R']
         effective_diffusion_coefficient_S = diffusion_coefficient_S * \
-            (1 - S[0] / carrying_capacity_S)
+            (1 - S[1] / carrying_capacity_S)
         effective_diffusion_coefficient_R = diffusion_coefficient_R * \
-            (1 - R[0] / carrying_capacity_R)
+            (1 - R[1] / carrying_capacity_R)
         diffusion_S = effective_diffusion_coefficient_S * \
-            (S[-1] - 2 * S[0] + S[1]) / space_step**2
+            (S[0] - 2 * S[1] + S[2]) / space_step**2
         diffusion_R = effective_diffusion_coefficient_R * \
-            (R[-1] - 2 * R[0] + R[1]) / space_step**2
+            (R[0] - 2 * R[1] + R[2]) / space_step**2
         return diffusion_S, diffusion_R
 
     else:
@@ -186,7 +189,7 @@ def one_step(S_old, R_old, parameters):
         dR = effective_growth_rate_R - death_rate_R
 
         diffusion_S, diffusion_R = compute_diffusion(
-            S_old[i-1:i+1], R_old[i-1:i+1], parameters)
+            S_old[i-1:i+2], R_old[i-1:i+2], parameters)
 
         S[i] = S_old[i] + time_step * (dS * S_old[i] + diffusion_S)
         R[i] = R_old[i] + time_step * (dR * R_old[i] + diffusion_R)
@@ -215,7 +218,7 @@ def pde_2D_model(parameters):
     X = np.linspace(space_start, space_end, space_points)
     T = np.linspace(time_start, time_end, time_points)
 
-    S = np.zeros((space_points, time_points))
+    S = np.ones((space_points, time_points))
     R = np.zeros((space_points, time_points))
     N = np.zeros((space_points, time_points))
     D = np.zeros(time_points)
@@ -259,35 +262,35 @@ if __name__ == '__main__':
     parameters = {
         'time_start': 0,
         'time_end': 1,
-        'time_points': 1000,
+        'time_points': 10000,
         'space_start': 0,
         'space_end': 1,
-        'space_points': 1000,
+        'space_points': 10,
         'tolerance': 0.0000001,
         'S0': 1.4,
-        'R0': 0.01,
+        'R0': 0,
         'S0_distribution': 'uniform',
         'R0_distribution': 'uniform',
-        'growth_rate_S': 0.03,
+        'growth_rate_S': 0,
         'growth_rate_R': 0.03,
         'carrying_capacity': 1,
         'diffusion_coefficient_S': 0.001,
         'diffusion_coefficient_R': 0.001,
         'maximum_tollerated_dose': 1,
-        'death_rate_S': 0.03,
+        'death_rate_S': 0,
         'death_rate_R': 0.03,
         'division_rate': 0.4,
         'therapy_type': 'continuous',
-        'time_boundary_conditions': 'Neumann',
+        'time_boundary_conditions': 'Dirichlet',
         'S0_left': 0,
         'R0_left': 0,
         'S0_right': 0,
         'R0_right': 0,
-        'diffusion_type': 'none'
+        'diffusion_type': 'standard'
     }
 
     S, R, N, D, X, T = pde_2D_model(parameters)
 
     print(S[:, 0])
     print(S[:, 5])
-    print(S[:, 600]-S[:, 599])
+    print(S[:, 600])
