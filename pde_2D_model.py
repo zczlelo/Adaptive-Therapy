@@ -126,7 +126,6 @@ def compute_diffusion(S, R, parameters):
     else:
         raise ValueError('diffusion_type must be standard, none or special')
 
-
 def boundary_conditions(S_old, R_old, parameters):
 
     time_boundary_conditions = parameters['time_boundary_conditions']
@@ -234,7 +233,46 @@ def pde_2D_model(parameters):
 
     return S, R, N, D, X, T
 
-# plot the results
+
+
+
+if __name__ == '__main__':
+
+    parameters = {
+        'time_start': 0,
+        'time_end': 100,
+        'time_points': 10_000,
+        'space_start': 0,
+        'space_end': 0.5,
+        'space_points': 100,
+        'tolerance': 0.0000001,
+        'S0': 1.4,
+        'R0': 0.02,
+        'S0_distribution': 'normal',
+        'R0_distribution': 'normal',
+        'growth_rate_S': 0.03,
+        'growth_rate_R': 0.03,
+        'carrying_capacity': 2,
+        'diffusion_coefficient_S': 0.0001,
+        'diffusion_coefficient_R': 0.0001,
+        'standard_deviation_S': 0.01,
+        'standard_deviation_R': 0.01,
+        'maximum_tollerated_dose': 1,
+        'death_rate_S': 0.03,
+        'death_rate_R': 0.03,
+        'division_rate': 0.4,
+        'therapy_type': 'continuous',
+        'time_boundary_conditions': 'Dirichlet',
+        'S0_left': 0,
+        'R0_left': 0,
+        'S0_right': 0,
+        'R0_right': 0,
+        'diffusion_type': 'standard'
+    }
+
+    S, R, N, D, X, T = pde_2D_model(parameters)
+
+    # plot the results
     fig, ax = plt.subplots()
     ax.set_xlabel('X')
     ax.set_ylabel('S')
@@ -253,44 +291,7 @@ def pde_2D_model(parameters):
 
     ani = animation.FuncAnimation(
         fig, func=animate, frames=np.arange(len(T)), blit=True)
-    ani.save('pde_2D_model.gif', fps=30)
-    plt.show()
 
-
-if __name__ == '__main__':
-
-    parameters = {
-        'time_start': 0,
-        'time_end': 1,
-        'time_points': 10000,
-        'space_start': 0,
-        'space_end': 1,
-        'space_points': 10,
-        'tolerance': 0.0000001,
-        'S0': 1.4,
-        'R0': 0,
-        'S0_distribution': 'uniform',
-        'R0_distribution': 'uniform',
-        'growth_rate_S': 0,
-        'growth_rate_R': 0.03,
-        'carrying_capacity': 1,
-        'diffusion_coefficient_S': 0.001,
-        'diffusion_coefficient_R': 0.001,
-        'maximum_tollerated_dose': 1,
-        'death_rate_S': 0,
-        'death_rate_R': 0.03,
-        'division_rate': 0.4,
-        'therapy_type': 'continuous',
-        'time_boundary_conditions': 'Dirichlet',
-        'S0_left': 0,
-        'R0_left': 0,
-        'S0_right': 0,
-        'R0_right': 0,
-        'diffusion_type': 'standard'
-    }
-
-    S, R, N, D, X, T = pde_2D_model(parameters)
-
-    print(S[:, 0])
-    print(S[:, 5])
-    print(S[:, 600])
+    WriterClass = animation.writers['ffmpeg']
+    writer = animation.FFMpegFileWriter(fps=10, metadata=dict(artist='bww'), bitrate=1800)
+    ani.save('pde_2D_model.mp4', writer = writer)
