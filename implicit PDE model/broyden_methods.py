@@ -1,26 +1,30 @@
 import numpy as np
 
-def broyden_method_sparse(F, x0, parameters, zeros, maximum_iterations = 100, tolerance = 1e-6, verbose = False):
+def broyden_method_sparse(F, x0, zeros, maximum_iterations = 100, tolerance = 1e-6, verbose = False):
+    return None
 
 
-
-    return x, error, i
-
-def broyden_method_bad(F, x0, parameters, maximum_iterations = 100, tolerance = 1e-6, verbose = False):  
+def broyden_method_bad(F, x0, J_inverse = None, maximum_iterations = 100, tolerance = 1e-6, verbose = False):  
     # initialize
     y0 = F(x0)
     # compute inverse of J
-    J_inverse = np.eye(len(x0))
+    if J_inverse is None:
+        J_inverse = np.eye(len(x0))
     # compute the error
     error = np.linalg.norm(y0)
 
     # main loop
     for i in range(maximum_iterations):
-        d = -J_inverse*y0
+        d = -J_inverse.dot(y0)
         x = x0 + d
         y = F(x)
         dF = y - y0
-        J_inverse = J_inverse + ((d - J_inverse*dF)/(dF.T*dF))*dF.T
+        u = J_inverse.dot(dF)
+        print(d)
+        print(u)
+        J_inverse = J_inverse + np.dot(((d-u).dot(d)), J_inverse) / np.dot(d,u)
+        # u = (d + np.dot(J_inverse,dF))/(np.dot(dF.T,dF))
+        # J_inverse = J_inverse + np.dot(u,dF.T)
         x0 = x
         y0 = y
         error = np.linalg.norm(y)
