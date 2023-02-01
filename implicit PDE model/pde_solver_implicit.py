@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from initial_conditions import set_up_initial_condition
 from helping_functions import unpack_solution, draw_solution
-from implicit_model import set_rhs, set_jacobian
-import odespy
 
 
 def set_initial_conditions(parameters):
@@ -16,15 +14,17 @@ def set_initial_conditions(parameters):
     R0_distribution = parameters['R0_distribution']
     N0_distribution = parameters['N0_distribution']
 
+    S0_extra_parameters = parameters['S0_extra_parameters']
+    R0_extra_parameters = parameters['R0_extra_parameters']
+    N0_extra_parameters = parameters['N0_extra_parameters']
+
     space_points = parameters['space_points']
     space_start = parameters['space_start']
     space_end = parameters['space_end']
 
-    # set up extra parameters !
-
-    S = set_up_initial_condition(S0, S0_distribution, space_points, space_start, space_end)
-    R = set_up_initial_condition(R0, R0_distribution, space_points, space_start, space_end)
-    N = set_up_initial_condition(N0, N0_distribution, space_points, space_start, space_end)
+    S = set_up_initial_condition(S0, S0_distribution, space_points, space_start, space_end, S0_extra_parameters)
+    R = set_up_initial_condition(R0, R0_distribution, space_points, space_start, space_end, R0_extra_parameters)
+    N = set_up_initial_condition(N0, N0_distribution, space_points, space_start, space_end, N0_extra_parameters)
 
     return np.vstack(S, R, N)
 
@@ -69,6 +69,9 @@ if __name__ == " __main__ ":
         'S0_distribution': 'normal',
         'R0_distribution': 'normal',
         'N0_distribution': 'uniform',
+        'S0_extra_parameters': [0.1, 0.1],
+        'R0_extra_parameters': [0.1, 0.1],
+        'N0_extra_parameters': [0.1, 0.1],
         'growth_rate_S': 0.03,
         'growth_rate_R': 0.03,
         'growth_rate_N': 0.03,

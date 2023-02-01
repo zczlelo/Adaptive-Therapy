@@ -52,8 +52,6 @@ def set_value(x, y, X0, X0_distribution, extra_parameters = None):
     elif X0_distribution == 'patch':
         return X0 * patch_cdf(x, y, extra_parameters)
 
-
-
 def set_up_initial_condition(X0, X0_distribution, space_points, space_start, space_end, extra_parameters = None):
 
     x = np.zeros(space_points)
