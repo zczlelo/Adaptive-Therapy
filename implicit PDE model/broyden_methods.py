@@ -20,9 +20,7 @@ def broyden_method_bad(F, x0, J_inverse = None, maximum_iterations = 100, tolera
         y = F(x)
         dF = y - y0
         u = J_inverse.dot(dF)
-        print(d)
-        print(u)
-        J_inverse = J_inverse + np.dot(((d-u).dot(d)), J_inverse) / np.dot(d,u)
+        J_inverse = J_inverse + np.dot(((d-u).dot(d.T)), J_inverse) / np.dot(d.T,u)
         # u = (d + np.dot(J_inverse,dF))/(np.dot(dF.T,dF))
         # J_inverse = J_inverse + np.dot(u,dF.T)
         x0 = x
