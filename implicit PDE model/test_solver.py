@@ -22,8 +22,8 @@ if __name__ == "__main__":
 
     result_1 = broyden_method_bad(func_1, np.array([[1, 1, 1]]).T, None, 3)
     result_2 = broyden_method_bad(func_2, np.array([[1, 1, 1]]).T, None, 3)
-    result_3 = broyden_method_bad(func_3, np.array([[1, 1, 1]]).T, None, 3)
-    result_4 = broyden_method_bad(func_4, np.array([[1, 1, 1]]).T, None, 3)
+    result_3 = broyden_method_bad(func_3, np.array([[1, 1, 1]]).T, None, 5)
+    result_4 = broyden_method_bad(func_4, np.array([[1, 1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]).T, None, 50)
 
     # print results
     print("Result 1: ", func_1(result_1[0]))

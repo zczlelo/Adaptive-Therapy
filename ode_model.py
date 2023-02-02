@@ -13,10 +13,25 @@ def therapy_drug_concentration(N, parameters):
         return 0
     elif therapy_type == 'adaptive':
         N0 = parameters['S0'] + parameters['R0']
-        if N > 0.5 * N0:
-            return maximum_tollerated_dose
+        current_state = parameters['current_state']
+        # on therapy
+        if current_state == 1:
+            # if shrunk sufficiently, turn off therapy
+            if N < N0/2:
+                parameters['current_state'] = 0
+                return 0
+            else:
+            # else, keep on therapy
+                return maximum_tollerated_dose
+        # off therapy
         else:
-            return 0
+            # if grown sufficiently, turn on therapy
+            if N > N0:
+                parameters['current_state'] = 1
+                return maximum_tollerated_dose
+            else:
+            # else, keep off therapy
+                return 0
 
 def one_step(S, R, time_step, parameters):
 
@@ -65,7 +80,7 @@ def ode_model(parameters, verbose=False):
     S0 = parameters['S0']
     R0 = parameters['R0']
     N0 = S0 + R0
-    D0 = 0
+    D0 = 1
 
 
     initial_size = int((time_end - time_start) / time_step)
@@ -147,16 +162,17 @@ if __name__ == "__main__":
         'time_end': 2000,
         'time_step': 0.1,
         'tolerance': 100,
-        'S0': 1.4,
-        'R0': 0.01,
-        'growth_rate_S': 0.03,
-        'growth_rate_R': 0.03,
-        'carrying_capacity': 10,
-        'maximum_tollerated_dose': 0.8,
+        'S0': 1,
+        'R0': 0.1,
+        'growth_rate_S': 0.04,
+        'growth_rate_R': 0.04,
+        'carrying_capacity': 4.9,
+        'maximum_tollerated_dose': 1,
         'death_rate_S': 0.03,
-        'death_rate_R': 0.02,
-        'division_rate': 0.04,
-        'therapy_type': 'continuous'
+        'death_rate_R': 0.03,
+        'division_rate': 0.03,
+        'therapy_type': 'adaptive',
+        'current_state': 1,
     }
 
     test_parameters(parameters)
