@@ -16,7 +16,7 @@ def func_4(x):
     return np.sin(x) + x**2
 
 def func_5(x):
-    return 2 * x - np.roll(x, 1) - np.roll(x, -1) + 1
+    return 2 * x - np.roll(x, 1) - x * np.roll(x, -1) + 1
 
 if __name__ == "__main__":
 
