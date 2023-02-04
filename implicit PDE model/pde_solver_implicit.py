@@ -84,7 +84,7 @@ if __name__ == " __main__ ":
         'standard_deviation_N': 0.01,
         'maximum_tollerated_dose': 1,
         'death_rate_S': 0.03,
-        'death_rate_R': 0.03,
+        '': 0.03,
         'death_rate_N': 0.03,
         'division_rate_S': 0.4,
         'division_rate_N': 0.4,
