@@ -88,7 +88,7 @@ def compute_diffusion_coefficient(value, parameters):
     else:
         raise ValueError('Invalid diffusion type')
 
-def compute_scheme(parameters, density, neighbourhood)
+def compute_scheme(parameters, density, neighbourhood):
 
     point_value = neighbourhood[0]
     drug_concentration = parameters['drug_concentration']
@@ -104,8 +104,6 @@ def compute_scheme(parameters, density, neighbourhood)
     effective_diffusion_coefficient = diffusion_coefficient/(space_step**2)
 
     return effectivie_growth_rate * point_value + effective_diffusion_coefficient * (sum(neighbourhood[1:]) - 4 * point_value)
-
-
 
     # if parameters['type'] == 'R':
     #     return growth_rate * (1 - density/carrying_capacity) * point_value\
