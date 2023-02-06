@@ -4,7 +4,7 @@ def broyden_method_sparse(F, x0, zeros, maximum_iterations = 100, tolerance = 1e
     return None
 
 
-def broyden_method_bad(F, x0, J_inverse = None, maximum_iterations = 100, tolerance = 1e-6, verbose = False):  
+def broyden_method_good(F, x0, J_inverse = None, maximum_iterations = 100, tolerance = 1e-6, verbose = False):  
     # initialize
     y0 = F(x0)
     # compute inverse of J
