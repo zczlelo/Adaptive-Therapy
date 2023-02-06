@@ -41,7 +41,6 @@ def patch_cdf(x,y, extra_parameters = None):
         center_y = extra_parameters[2]
         side_length = extra_parameters[3]
     return is_in_patch(x, y, patch_type, center_x, center_y, side_length)
-    
 
 def set_value(x, y, X0, X0_distribution, extra_parameters = None):
 
@@ -52,17 +51,15 @@ def set_value(x, y, X0, X0_distribution, extra_parameters = None):
     elif X0_distribution == 'patch':
         return X0 * patch_cdf(x, y, extra_parameters)
 
-def set_up_initial_condition(X0, X0_distribution, space_points, space_start, space_end, extra_parameters = None):
+def set_up_initial_condition(X0, X0_distribution, space_points, space_start, space_end, extra_parameters):
 
-    x = np.zeros(space_points)
-    y = np.zeros(space_points)
-    xx, yy = np.meshgrid(x, y)
+    x = np.arange(space_points)
 
-    initial_condition_array = np.zeros((space_points * space_points, 1))
+    initial_condition_array = np.zeros(space_points * space_points)
     scaling_factor = (space_end - space_start) / space_points
 
-    for x_coordinate in xx:
-        for y_coordinate in yy:
+    for x_coordinate in x:
+        for y_coordinate in x:
             array_coordinate = from_2D_to_1D(x_coordinate, y_coordinate, space_points)
             x_real = x_coordinate * scaling_factor + space_start
             y_real = y_coordinate * scaling_factor + space_start
