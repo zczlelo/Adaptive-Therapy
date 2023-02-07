@@ -50,9 +50,9 @@ def pde_model(parameters):
 def pde_3D_model_implicit(parameters):
 
     print("pde_3D_model_implicit")
-    U = pde_model(parameters)
-    print(U)
 
-    S, R, N, D, X, T = unpack_solution(U, parameters)   
+    U = pde_model(parameters)
+
+    S, R, N, D, X, T = unpack_solution(U, parameters)
 
     return S, R, N, D, X, T
