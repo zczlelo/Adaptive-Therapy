@@ -1,6 +1,7 @@
 import numpy as np
 from initial_conditions import *
 from broyden_methods import broyden_method_good
+import matplotlib.pyplot as plt
 
 def unpack_parameters(parameters):
 
@@ -50,9 +51,24 @@ def unpack_parameters(parameters):
 
     return separated_parameters
 
+# def compute_denisity_grid(U, parameters):
+#     x = int(np.sqrt(len(U)//3))
+#     print(x)
+#     return np.reshape(U[:x**2], (x,x)) + np.reshape(U[x**2:2*x**2], (x,x)) + np.reshape(U[2*x**2:], (x,x))
+
 def compute_denisity_grid(U, parameters):
-    x = int(np.sqrt(len(U)//3))
-    return np.reshape(U[:x**2], (x,x)) + np.reshape(U[x**2:2*x**2], (x,x)) + np.reshape(U[2*x**2:], (x,x))
+
+    space_points = parameters['space_points']
+    return_grid = np.zeros((space_points, space_points))
+    
+    for i in range(space_points):
+        for j in range(space_points):
+            k1 = i * space_points + j
+            k2 = k1 + space_points**2
+            k3 = k2 + space_points**2
+            return_grid[i][j] = U[k1] + U[k2] + U[k3]
+    return return_grid
+
 
 def unpack_index(k, parameters):
     
@@ -68,15 +84,37 @@ def get_neighbourhood(k, space_points):
 
     return_array = np.zeros(5)
     type = k // (space_points**2)
-    return_array[0] = k
-    return_array[1] = (k + 1) % (space_points**2) + type * space_points**2
-    return_array[2] = (k - 1) % (space_points**2) + type * space_points**2
-    return_array[3] = (k + space_points) % (space_points**2) + type * space_points**2
-    return_array[4] = (k - space_points) % (space_points**2) + type * space_points**2
+    k = k % (space_points**2)  
+    return_array[0] = k + type * space_points**2
+
+    if (k + 1) % (space_points) == 0:
+        return_array[1] = k+1-space_points + type * space_points**2
+    else:
+        return_array[1] = k+1 + type * space_points**2
+
+    if k % (space_points) == 0:
+        return_array[2] = k-1 + space_points + type * space_points**2
+    else:
+        return_array[2] = k-1 + type * space_points**2
+    # return_array[1] = space_points * (k+1)//space_points + (k + 1) % (space_points) + type * space_points**2
+    # return_array[2] = (k - 1) % (space_points) + type * space_points**2
+    if k + space_points >= space_points**2:
+        return_array[3] = (k) % space_points + type * space_points**2
+    else:
+        return_array[3] = (k + space_points) + type * space_points**2
     
+    if k - space_points < 0:
+        return_array[4] = space_points*(space_points-1) + k + type * space_points**2
+    else:
+        return_array[4] = (k - space_points) + type * space_points**2
+
+    #   return_array[3] = (k + space_points) % (space_points) + type * space_points**2
+    # return_array[4] = (k - space_points) % (space_points) + type * space_points**2
+    # print(return_array)
     return return_array
     
 def compute_diffusion_coefficient(value, parameters):
+
     if parameters['diffusion_type'] == 'standard':
         return parameters['diffusion_coefficient']
     else:
@@ -178,6 +216,7 @@ def pde_model(parameters):
     S0_distribution = parameters['S0_distribution']
     S0_extra_parameters = parameters['S0_extra_parameters']
     initial_S = set_up_initial_condition(S0, S0_distribution, space_points, space_start, space_end, S0_extra_parameters)
+    
 
     R0 = parameters['R0']
     R0_distribution = parameters['R0_distribution']
@@ -188,52 +227,67 @@ def pde_model(parameters):
     N0_distribution = parameters['N0_distribution']
     N0_extra_parameters = parameters['N0_extra_parameters']
     initial_N = set_up_initial_condition(N0, N0_distribution, space_points, space_start, space_end, N0_extra_parameters)
-    
+    # show grid in plot
+    # plt.grid()
+    # plt.spy(np.reshape(initial_S, (space_points, space_points)))
+    # plt.show()
+
     U = np.concatenate((initial_S, initial_R, initial_N))
 
     current_time = time_start
+
     while current_time + time_step < time_end:
+
         F = construct_F(U, parameters)
-        U_new = broyden_method_good(F, U)[0]
-        print(U_new)
+        U_new , error, i = broyden_method_good(F, U)
+
+        # print(np.reshape(U_new[0:space_points**2], (space_points, space_points)))
+        # print("!!!!!!")
+        plt.spy(np.reshape(U_new[0:space_points**2], (space_points, space_points)), 0.001)
+        plt.show()
+        # print(U_new)
         U = U_new
         current_time += time_step
 
     return 0
 
-parameters = {
+
+if __name__ == "__main__":
+
+    parameters = {
     'time_start': 0,
-    'time_end': 0.3,
+    'time_end': 1,
     'time_step': 0.1,
     'space_start': 0,
-    'space_end': 0.5,
-    'space_points': 3,
-    'S0': 1.4,
-    'R0': 0.02,
-    'N0': 1.42,
-    'S0_distribution': 'uniform',
+    'space_end': 10,
+    'space_points': 10,
+    'S0': 1,
+    'R0': 0,
+    'N0': 0,
+    'S0_distribution': 'patch',
     'R0_distribution': 'uniform',
     'N0_distribution': 'uniform',
-    'S0_extra_parameters': [0.1, 0.1],
+    'S0_extra_parameters': ['circle', 3, 3, 0],
     'R0_extra_parameters': [0.1, 0.1],
     'N0_extra_parameters': [0.1, 0.1],
-    'growth_rate_S': 0.03,
-    'growth_rate_R': 0.03,
-    'growth_rate_N': 0.03,
-    'carrying_capacity': 10,
-    'diffusion_coefficient_S': 0.0001,
+    'growth_rate_S': 0.04,
+    'growth_rate_R': 0.04,
+    'growth_rate_N': 0.04,
+    'carrying_capacity': 4.9,
+    'diffusion_coefficient_S': 0.1,
     'diffusion_coefficient_R': 0.0001,
     'diffusion_coefficient_N': 0.0001,
     'standard_deviation_S': 0.01,
     'standard_deviation_R': 0.01,
     'standard_deviation_N': 0.01,
     'maximum_tolerated_dose': 1,
-    'death_rate_S': 0.03,
+    'death_rate_S': 0,
     'death_rate_R': 0.03,
     'death_rate_N': 0.03,
-    'division_rate_S': 0.4,
-    'division_rate_N': 0.4,
-    'therapy_type': 'continuous',
+    'division_rate_S': 0.3,
+    'division_rate_N': 0.3,
+    'therapy_type': 'notherapy',
+    'current_state': 1,
     'time_boundary_conditions': 'Periodic',
     'S0_left': 0,
     'R0_left': 0,
@@ -242,4 +296,4 @@ parameters = {
     'diffusion_type': 'standard'
 }
 
-pde_model(parameters)
+    pde_model(parameters)

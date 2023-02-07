@@ -30,7 +30,6 @@ def set_initial_conditions(parameters):
 
 def pde_3D_model_implicit(parameters):
 
-
     # set up time grid
     time_points = parameters['time_points']
     time_start = parameters['time_start']
