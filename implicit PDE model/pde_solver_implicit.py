@@ -38,6 +38,8 @@ def pde_3D_model_implicit(parameters):
     time_points = np.linspace(time_start, time_end, time_points + 1)
 
     initial_conditions = set_initial_conditions(parameters)
+
+    
     solver.set_initial_condition(initial_conditions)
 
     rhs = set_rhs(parameters)

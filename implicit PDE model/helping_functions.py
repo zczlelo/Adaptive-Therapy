@@ -13,3 +13,4 @@ def unpack_solution(u, t, parameters):
 def draw_solution(S, R, N, D, X, T, parameters, show = True, save = True, save_name = 'implicit_3D_model', save_path = 'implicit_3D_model'):
 
     return None
+
