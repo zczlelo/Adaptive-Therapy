@@ -39,6 +39,9 @@ def pde_model(parameters):
     final_arrray[0, :] = np.concatenate((initial_S, initial_R, initial_N))
 
     for i in range(number_of_time_points-1):
+
+            if i%10==0:
+                print(i)
             
             F = construct_F(final_arrray[i,:], parameters)
 
