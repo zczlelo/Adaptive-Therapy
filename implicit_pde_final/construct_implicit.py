@@ -193,7 +193,6 @@ def construct_F(U, parameters):
     
     def F(solution):
         
-
         # reshape solution to 3d array
         solution = solution.reshape((space_points, space_points, 3))
         result = -4 * solution
@@ -213,8 +212,6 @@ def construct_F(U, parameters):
             type = k // (space_points**2)
             # neighbourhood_coordinates = get_neighbourhood(k, space_points)
             # neighbourhood = [solution[int(h)] for h in neighbourhood_coordinates]
-
-            
             result[k] = compute_scheme(parameters_by_type[type], density_grid[k - type * space_points**2], result[k], solution[k]) - time_derivative
 
         return result
