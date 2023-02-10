@@ -190,20 +190,15 @@ def construct_F(U, parameters):
 
     for dic in parameters_by_type:
         dic['drug_concentration'] = drug_concentration
+
+    # parameters['left'] = left
+    # parameters['right'] = right
+    # parameters['up'] = up
+    # parameters['down'] = down
     
     def F(solution):
         
-        # reshape solution to 3d array
-        solution = solution.reshape((space_points, space_points, 3))
-        result = -4 * solution
-        result += np.roll(solution, 1, axis=0)
-        result += np.roll(solution, -1, axis=0)
-        result += np.roll(solution, 1, axis=1)
-        result += np.roll(solution, -1, axis=1)
-        # reshape result to 1d array
-        result = result.reshape((space_points**2 * 3))
-        # reshape solution to 1d array
-        solution = solution.reshape((space_points**2 * 3))
+        result = solution[parameters['left']] + solution[parameters['right']] + solution[parameters['up']] + solution[parameters['down']] - 4 * solution
 
         for k in range(len(solution)):
 
