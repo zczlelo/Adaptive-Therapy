@@ -135,6 +135,7 @@ def compute_scheme(parameters, density, sum_diffusion, point_value):
     space_step = (space_end - space_start) / space_points
     division_rate = parameters['division_rate']
 
+
     effectivie_growth_rate = growth_rate * (1 - density/carrying_capacity)*(1 - 2*division_rate*(drug_concentration/maximum_tolerated_dose)) - death_rate
     effective_diffusion_coefficient = diffusion_coefficient/(space_step**2)
 
@@ -171,6 +172,8 @@ def therapy_drug_concentration(density, parameters):
             else:
             # else, keep off therapy
                 return 0
+    else:
+        raise ValueError('Invalid therapy type. Spelling?')
 
 def construct_F(U, parameters):
 
