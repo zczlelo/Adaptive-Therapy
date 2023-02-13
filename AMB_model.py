@@ -2,6 +2,7 @@ from matplotlib import gridspec
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 class AMB_model:
     def __init__(self, N, T, S0, R0, grS, grR, drS, drR, divrS):
@@ -20,7 +21,11 @@ class AMB_model:
         self.data[0, 0] = np.sum(self.grid == 1)
         self.data[0, 1] = np.sum(self.grid == 2)
         self.data[0, 2] = self.current_therapy
-        
+        self.location_data = []
+        sensitive_location_data = np.append(np.argwhere(self.grid==1),np.ones((self.data[0,0].astype(int),1)),axis=1)
+        resistant_location_data = np.append(np.argwhere(self.grid==2),np.ones((self.data[0,1].astype(int),1))*2,axis=1)
+        initial_location_data = np.append(sensitive_location_data,resistant_location_data,axis=0)
+        self.location_data.append(initial_location_data)
 
     def set_initial_condition(self, initial_condition_type):
         if initial_condition_type == 'random':
@@ -88,8 +93,8 @@ class AMB_model:
     def run(self, therapy_type):
         # run model for T iterations
         for t in range(1, self.T):
-            if t % 50 == 0:
-                self.print_grid()
+            # if t % 50 == 0:
+            #     self.print_grid()
             self.set_therapy(therapy_type, t)
             # compute death of cells
             self.compute_death()
@@ -102,6 +107,10 @@ class AMB_model:
             self.data[t, 0] = np.sum(self.grid == 1)
             self.data[t, 1] = np.sum(self.grid == 2)
             self.data[t, 2] = self.current_therapy
+            sensitive_location_data = np.append(np.argwhere(self.grid==1),np.ones((self.data[t,0].astype(int),1)),axis=1)
+            resistant_location_data = np.append(np.argwhere(self.grid==2),np.ones((self.data[t,1].astype(int),1))*2,axis=1)
+            current_location_data = np.append(sensitive_location_data,resistant_location_data,axis=0)
+            self.location_data.append(current_location_data)
     
     def print_grid(self):
         # plot the grid in different colors for S and R
@@ -219,8 +228,80 @@ class AMB_model:
         ax.set_ylabel('Density')
         ax.legend()
         return ax
+    
+    def animate_cells(self,figax):
+        if np.all(self.data==0):
+            print("No Data!")
+            return None,None,None
+        fig,ax = figax
+        nFrames = self.T-1
+        print(f"{self.location_data[1].shape=}")
+        sensitiveLocations = self.location_data[1][self.location_data[1][:,2]==1,:2]
+        resistantLocations = self.location_data[1][self.location_data[1][:,2]==2,:2]
+        scale = 6000/self.N
+        sS = ax.scatter(sensitiveLocations[:,0],sensitiveLocations[:,1],c="b",marker="s",s =scale)
+        sR = ax.scatter(resistantLocations[:,0],resistantLocations[:,1],c="r",marker="s",s= scale)
+        ax.set(xlim=(-0.5,self.N+0.5),ylim=(-0.5,self.N+0.5))
+        ax.axis("equal")
+        ax.axis("off")
+        def update(i):
+            sensitiveLocations = self.location_data[i+1][self.location_data[i+1][:,2]==1,:2]
+            resistantLocations = self.location_data[i+1][self.location_data[i+1][:,2]==2,:2]
+            sS.set_offsets(sensitiveLocations)
+            sR.set_offsets(resistantLocations)
+        anim = animation.FuncAnimation(fig=fig,func=update,frames=nFrames,interval=40)
+        return fig,ax,anim
 
+    def animate_graph(self,figax,interval=40):
+        fig,ax = figax
+        i = 2
+        lineS, = ax.plot(np.arange(1,i), self.data[1:i, 0], label='S')
+        lineR, = ax.plot(np.arange(1,i), self.data[1:i, 1], label='R')
+        lineD, = ax.plot(np.arange(1,i), self.data[1:i, 2] * 100, label='Therapy')
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Density')
+        ax.set(xlim=(0,self.T))
+        ax.legend()
+        def update(i):
+            lineS.set_data(np.arange(1,i), self.data[1:i, 0])
+            lineR.set_data(np.arange(1,i), self.data[1:i, 1])
+            lineD.set_data(np.arange(1,i), self.data[1:i, 2]*100)
 
+        anim = animation.FuncAnimation(fig,update,self.T-1,interval=interval)
+        return fig,ax,anim
+    
+    def animate_cells_graph(self,interval=40):
+        fig,ax = plt.subplots(1,2)
+        j =2
+        lineS, = ax[0].plot(np.arange(1,j), self.data[1:j, 0], label='S')
+        lineR, = ax[0].plot(np.arange(1,j), self.data[1:j, 1], label='R')
+        lineD, = ax[0].plot(np.arange(1,j), self.data[1:j, 2] * 100, label='Therapy')
+        ax[0].set_xlabel('Time')
+        ax[0].set_ylabel('Density')
+        ax[0].set(xlim=(0,self.T))
+        ax[0].legend()
+
+        nFrames = self.T-1
+        print(f"{self.location_data[1].shape=}")
+        sensitiveLocations = self.location_data[1][self.location_data[1][:,2]==1,:2]
+        resistantLocations = self.location_data[1][self.location_data[1][:,2]==2,:2]
+        scale = 6000/self.N
+        sS = ax[1].scatter(sensitiveLocations[:,0],sensitiveLocations[:,1],c="b",marker="s",s =scale)
+        sR = ax[1].scatter(resistantLocations[:,0],resistantLocations[:,1],c="r",marker="s",s= scale)
+        ax[1].set(xlim=(-0.5,self.N+0.5),ylim=(-0.5,self.N+0.5))
+        ax[1].axis("equal")
+        ax[1].axis("off")
+        def update(i):
+            lineS.set_data(np.arange(1,i), self.data[1:i, 0])
+            lineR.set_data(np.arange(1,i), self.data[1:i, 1])
+            lineD.set_data(np.arange(1,i), self.data[1:i, 2]*100)
+            sensitiveLocations = self.location_data[i+1][self.location_data[i+1][:,2]==1,:2]
+            resistantLocations = self.location_data[i+1][self.location_data[i+1][:,2]==2,:2]
+            sS.set_offsets(sensitiveLocations)
+            sR.set_offsets(resistantLocations)
+        anim = animation.FuncAnimation(fig=fig,func=update,frames=nFrames,interval=interval)
+        return fig,ax,anim
+    
 if __name__ == "__main__":
 
     # set up parameters
@@ -249,6 +330,19 @@ if __name__ == "__main__":
     ax = model.plot_celltypes_density(ax)
     plt.show()
 
+    # animate data
+    # fig,ax = plt.subplots()
+    # fig,ax,anim = model.animate_cells((fig,ax))
+    # anim.save("test_ABM.mp4")
+
+    # animate graph
+    # fig,ax = plt.subplots()
+    # fig,ax,anim = model.animate_graph((fig,ax))
+    # anim.save("test_ABM_graph.mp4")
+
+    # animate both
+    fig,ax,anim = model.animate_cells_graph()
+    anim.save("both_working.mp4")
 
 
     # # do a parameter sweep
