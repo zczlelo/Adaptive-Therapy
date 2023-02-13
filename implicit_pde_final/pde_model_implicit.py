@@ -77,16 +77,31 @@ def pde_model(parameters):
     parameters['down'] = down
 
     for i in range(number_of_time_points-1):
-
-            if i%10==0:
-                print(i)
+    
+            if i%10 ==0 :
+                print(f"Reached Time Step {i}")
             
             F = construct_F(final_arrray[i,:], parameters)
 
             final_arrray[i+1,:] , error, it_count = broyden_method_good(F, final_arrray[i,:])
             # np.savetxt('final_arrray.txt', final_arrray)
 
-    return final_arrray
+    #adding the cut off parameter       
+    cut = parameters['cut']
+    cut_tolerence = parameters['cut_tolerence']
+
+    if cut == 'on':
+        final_arrray_cut = final_arrray.copy()
+        mask = final_arrray_cut <= cut_tolerence
+        final_arrray_cut[mask] = 0
+        return final_arrray_cut
+
+    if cut == 'off':
+        return final_arrray
+    else:
+        return ValueError('cut parameter should either be on or off')
+
+
 
 def pde_3D_model_implicit(parameters):
 
