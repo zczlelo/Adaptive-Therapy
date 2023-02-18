@@ -272,6 +272,7 @@ class AMB_model:
     
     def animate_cells_graph(self,interval=40):
         fig,ax = plt.subplots(1,2)
+        fig.set_size_inches(10,7)
         j =2
         lineS, = ax[0].plot(np.arange(1,j), self.data[1:j, 0], label='S')
         lineR, = ax[0].plot(np.arange(1,j), self.data[1:j, 1], label='R')
@@ -285,12 +286,16 @@ class AMB_model:
         print(f"{self.location_data[1].shape=}")
         sensitiveLocations = self.location_data[1][self.location_data[1][:,2]==1,:2]
         resistantLocations = self.location_data[1][self.location_data[1][:,2]==2,:2]
-        scale = 6000/self.N
+        # scale = 6000/self.N**2
+        scale = 10
         sS = ax[1].scatter(sensitiveLocations[:,0],sensitiveLocations[:,1],c="b",marker="s",s =scale)
         sR = ax[1].scatter(resistantLocations[:,0],resistantLocations[:,1],c="r",marker="s",s= scale)
         ax[1].set(xlim=(-0.5,self.N+0.5),ylim=(-0.5,self.N+0.5))
+        ax[1].vlines(np.linspace(0,self.N-1,self.N)-0.5,0,self.N,linewidth=0.1)
+        ax[1].hlines(np.linspace(0,self.N-1,self.N)-0.5,0,self.N,linewidth=0.1)
         ax[1].axis("equal")
         ax[1].axis("off")
+        # ax[1].set(xlim=(70,130),ylim=(70,130))
         def update(i):
             lineS.set_data(np.arange(1,i), self.data[1:i, 0])
             lineR.set_data(np.arange(1,i), self.data[1:i, 1])
@@ -305,7 +310,7 @@ class AMB_model:
 if __name__ == "__main__":
 
     # set up parameters
-    N = 200
+    N = 40
     T = 400
     R0 = 10
     grS = 0.028
@@ -326,9 +331,10 @@ if __name__ == "__main__":
     # run simulation
     model.run(therapy)
     # plot data
-    fig, ax = plt.subplots(1, 1)
-    ax = model.plot_celltypes_density(ax)
-    plt.show()
+    # fig, ax = plt.subplots(1, 1)
+    # ax = model.plot_celltypes_density(ax)
+    # plt.show()
+    print(model.location_data)
 
     # animate data
     # fig,ax = plt.subplots()
@@ -342,7 +348,9 @@ if __name__ == "__main__":
 
     # animate both
     fig,ax,anim = model.animate_cells_graph()
-    anim.save("both_working.mp4")
+    anim.save("media/nice_abm.mp4")
+    # plt.show()
+    # anim.save("both_working.mp4")
 
 
     # # do a parameter sweep
