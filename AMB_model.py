@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 class AMB_model:
-    def __init__(self, N, T, S0, R0, grS, grR, drS, drR, divrS):
+    def __init__(self, N, T, S0, R0, grS, grR, drS, drR, divrS, save=False):
         self.N = N
         self.T = T
         self.S0 = S0
@@ -20,12 +20,20 @@ class AMB_model:
         self.current_therapy = 1
         self.data[0, 0] = np.sum(self.grid == 1)
         self.data[0, 1] = np.sum(self.grid == 2)
+        print(self.data[0, 0])
+        print(self.data[0, 1])
         self.data[0, 2] = self.current_therapy
         self.location_data = []
+        self.save = save
         sensitive_location_data = np.append(np.argwhere(self.grid==1),np.ones((self.data[0,0].astype(int),1)),axis=1)
         resistant_location_data = np.append(np.argwhere(self.grid==2),np.ones((self.data[0,1].astype(int),1))*2,axis=1)
         initial_location_data = np.append(sensitive_location_data,resistant_location_data,axis=0)
         self.location_data.append(initial_location_data)
+
+    def reset_grid(self):
+        self.grid = np.zeros((self.N, self.N))
+        for location in self.location_data[0]:
+            self.grid[location[0],location[1]] = location[2]
 
     def set_initial_condition(self, initial_condition_type):
         if initial_condition_type == 'random':
@@ -107,10 +115,12 @@ class AMB_model:
             self.data[t, 0] = np.sum(self.grid == 1)
             self.data[t, 1] = np.sum(self.grid == 2)
             self.data[t, 2] = self.current_therapy
-            sensitive_location_data = np.append(np.argwhere(self.grid==1),np.ones((self.data[t,0].astype(int),1)),axis=1)
-            resistant_location_data = np.append(np.argwhere(self.grid==2),np.ones((self.data[t,1].astype(int),1))*2,axis=1)
-            current_location_data = np.append(sensitive_location_data,resistant_location_data,axis=0)
-            self.location_data.append(current_location_data)
+
+            if self.save == True:
+                sensitive_location_data = np.append(np.argwhere(self.grid==1),np.ones((self.data[t,0].astype(int),1)),axis=1)
+                resistant_location_data = np.append(np.argwhere(self.grid==2),np.ones((self.data[t,1].astype(int),1))*2,axis=1)
+                current_location_data = np.append(sensitive_location_data,resistant_location_data,axis=0)
+                self.location_data.append(current_location_data)
     
     def print_grid(self):
         # plot the grid in different colors for S and R
@@ -307,6 +317,18 @@ class AMB_model:
         anim = animation.FuncAnimation(fig=fig,func=update,frames=nFrames,interval=interval)
         return fig,ax,anim
     
+    def time_to_progression(self, threshold):
+        # calculate inital tumor size
+        initial_tumor_size = self.S0 + self.R0
+        for i in range(self.T):
+            print(self.data[i,0] + self.data[i,1])
+            if self.data[i,0] + self.data[i,1] > threshold * initial_tumor_size:
+                return i
+        
+        
+
+
+
 if __name__ == "__main__":
 
     # set up parameters
