@@ -9,6 +9,7 @@ class AMB_model:
     def __init__(self,parameters):
         self.domain_size = parameters["domain_size"]
         self.T = parameters["T"]
+        self.dt = parameters["dt"]
         self.S0 = parameters["S0"]
         self.R0 = parameters["R0"]
         self.N0 = parameters["N0"]
@@ -67,7 +68,9 @@ class AMB_model:
             self.location_data.append(initial_location_data)
 
     def reset_grid(self):
-        self.grid = self.initial_grid.copy()
+        self.grid = np.zeros((self.domain_size, self.domain_size))
+        for location in self.location_data[0]:
+            self.grid[location[0], location[1]] = location[2]
 
     def set_initial_condition(self, initial_condition_type):
 
@@ -222,17 +225,17 @@ class AMB_model:
         # get all cells with S
         cells = np.argwhere(self.grid == self.sensitive_type)
         for cell in cells:
-            if np.random.random() < self.drS:
+            if np.random.random() < self.drS *self.dt:
                 # cell dies
                 self.grid[cell[0]][cell[1]] = 0
         cells = np.argwhere(self.grid == self.resistant_type)
         for cell in cells:
-            if np.random.random() < self.drR:
+            if np.random.random() < self.drR *self.dt:
                 # cell dies
                 self.grid[cell[0]][cell[1]] = 0
         cells = np.argwhere(self.grid == self.normal_type)
         for cell in cells:
-            if np.random.random() < self.drN:
+            if np.random.random() < self.drN *self.dt:
                 # cell dies
                 self.grid[cell[0]][cell[1]] = 0
 
@@ -241,7 +244,7 @@ class AMB_model:
         cells = np.argwhere(self.grid == self.sensitive_type)
         for cell in cells:
             # it grows with probability grS
-            if np.random.random() < self.grS:
+            if np.random.random() < self.grS*self.dt:
                 # get all neigbours
                 neigbours = self.get_neigbours(cell)
                 count = 0
@@ -269,7 +272,7 @@ class AMB_model:
         cells = np.argwhere(self.grid == self.resistant_type)
         for cell in cells:
             # it grows with probability grR
-            if np.random.random() < self.grR:
+            if np.random.random() < self.grR*self.dt:
                 # get all neigbours
                 neigbours = self.get_neigbours(cell)
                 count = 0
@@ -292,7 +295,7 @@ class AMB_model:
         cells = np.argwhere(self.grid == self.normal_type)
         for cell in cells:
             # it grows with probability grR
-            if np.random.random() < self.grN:
+            if np.random.random() < self.grN*self.dt:
                 # get all neigbours
                 neigbours = self.get_neigbours(cell)
                 count = 0
@@ -399,10 +402,10 @@ class AMB_model:
 
     def plot_celltypes_density(self, ax):
         # plot cell types density
-        ax.plot(np.arange(1, self.T), self.data[1:, 0], label="S")
-        ax.plot(np.arange(1, self.T), self.data[1:, 1], label="R")
-        ax.plot(np.arange(1, self.T), self.data[1:, 2], label="N")
-        ax.plot(np.arange(1, self.T), self.data[1:, 3] * 100, label="Therapy")
+        ax.plot(np.arange(1, self.T)*self.dt, self.data[1:, 0], label="S")
+        ax.plot(np.arange(1, self.T)*self.dt, self.data[1:, 1], label="R")
+        ax.plot(np.arange(1, self.T)*self.dt, self.data[1:, 2], label="N")
+        ax.plot(np.arange(1, self.T)*self.dt, self.data[1:, 3] * 100, label="Therapy")
         ax.set_xlabel("Time")
         ax.set_ylabel("Density")
         ax.legend()
@@ -557,20 +560,29 @@ if __name__ == "__main__":
     # set up parameters
     parameters = {"domain_size" : 40,
     "T" : 400,
+    "dt" : 1,
     "S0" : 200,
     "R0" : 10,
     "N0" : 0,
+<<<<<<< HEAD:AMB_model.py
     "grS" : 0.028,
+=======
+    "grS" : 0.023,
+>>>>>>> 41044776f359a7fafb9fb685b02003458011efe8:ABM_model.py
     "grR" : 0.023,
     "grN" : 0.005,
-    "drS" : 0.013,
-    "drR" : 0.013,
+    "drS" : 0.01,
+    "drR" : 0.01,
     "drN" : 0.00,
     "divrS" : 0.75,
     "divrN" : 0.5,
     "therapy" : "adaptive",
     "initial_condition_type" : "uniform",
+<<<<<<< HEAD:AMB_model.py
     "save_locations" : False,
+=======
+    "save_locations" : True,
+>>>>>>> 41044776f359a7fafb9fb685b02003458011efe8:ABM_model.py
     "dimension" : 2}
 
     # set up model
@@ -585,7 +597,10 @@ if __name__ == "__main__":
     # plot data
     fig, ax = plt.subplots(1, 1)
     ax = model.plot_celltypes_density(ax)
+    t = np.arange(1, model.T)*model.dt
+    # ax.plot(t,model.R0*np.pi * np.exp(-model.drS*t), label="ODE Model")
     plt.show()
+
     if model.save_locations:
         fig, ax, anim = model.animate_cells_graph()
         anim.save("media/nice_abm.mp4")
