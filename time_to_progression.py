@@ -1,4 +1,4 @@
-from AMB_model import AMB_model
+from ABM_model import AMB_model
 from ode_model import ode_model
 import numpy as np
 
