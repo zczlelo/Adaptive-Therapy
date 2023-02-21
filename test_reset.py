@@ -1,5 +1,6 @@
 from ABM_model import ABM_model
 import matplotlib.pyplot as plt
+import numpy as np
 parameters = {"domain_size" : 40,
     "T" : 400,
     "dt" : 1,
@@ -49,3 +50,26 @@ axs[0].set(xlabel="x", ylabel="y", title="Seed 100")
 model2.plot_celltypes_density(axs[1])
 axs[1].set(xlabel="x", ylabel="y", title="Seed 1000")
 plt.show()
+# These two are equivalent. Not true for soft reset.
+
+# Comparing soft reset with 
+fig,axs = plt.subplots(1,2) 
+fig.set_size_inches(10,5)
+# soft reset
+model3 = ABM_model(parameters)
+model3.set_seed(1000)
+model3.run(parameters["therapy"])
+model3.plot_celltypes_density(axs[0])
+axs[0].set(xlabel="x", ylabel="y", title="Initial seed 100, set_seed 1000")
+
+# running once then soft reset
+model4 = ABM_model(parameters)
+model4.run(parameters["therapy"])
+model4.reset(hard=False)
+model4.set_seed(1000)
+model4.run(parameters["therapy"])
+model4.plot_celltypes_density(axs[1])
+axs[1].set(xlabel="x", ylabel="y", title="Initial seed 100, set_seed 1000")
+plt.show()
+
+
