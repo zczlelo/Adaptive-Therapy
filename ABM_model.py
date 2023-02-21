@@ -7,6 +7,7 @@ import matplotlib.animation as animation
 
 class ABM_model:
     def __init__(self,parameters):
+        self.parameters = parameters
         self.domain_size = parameters["domain_size"]
         self.T = parameters["T"]
         self.dt = parameters["dt"]
@@ -25,16 +26,22 @@ class ABM_model:
         self.grid = np.zeros((self.domain_size, self.domain_size))
         self.data = np.zeros((self.T, 4))
         self.current_therapy = 1
+        self.seed = parameters["seed"]
+        print(f"Using seed {self.seed}")
+        np.random.seed(self.seed)
         # cell types 1 = sensitive, 2 = resistant, 3 = normal
         self.sensitive_type = 1
         self.resistant_type = 2
         self.normal_type = 3
+        # print(f"Starting with {self.S0} sensitive cells, {self.R0} resistant cells and {self.N0} normal cells.")
+
+        # set initial condition and store data
+        self.set_initial_condition(parameters["initial_condition_type"])
         self.data[0, 0] = np.sum(self.grid == self.sensitive_type)
         self.data[0, 1] = np.sum(self.grid == self.resistant_type)
         self.data[0, 2] = np.sum(self.grid == self.normal_type)
-        self.initial_grid = None
-        print(f"Starting with {self.S0} sensitive cells, {self.R0} resistant cells and {self.N0} normal cells.")
         self.data[0, 3] = self.current_therapy
+        # inintialize grid
 
         self.save_locations = parameters["save_locations"]
         if self.save_locations:
@@ -62,13 +69,21 @@ class ABM_model:
             )
             self.location_data.append(initial_location_data)
 
-    def reset_grid(self):
-        self.grid = np.zeros((self.domain_size, self.domain_size))
-        for location in self.location_data[0]:
-            self.grid[location[0], location[1]] = location[2]
+    def set_seed(self,seed):
+        self.seed = seed
+        np.random.seed(self.seed)
+
+    def reset(self,hard = False):
+        """Hard reset will reset the grid to a new initial grid of the same type. 
+        Soft reset will reset the grid to the initial grid generated at the start."""
+        if hard:
+            self.set_initial_condition(self.parameters["initial_condition_type"])
+        else:
+            self.grid = self.initial_grid.copy()
+        return self.seed
 
     def set_initial_condition(self, initial_condition_type):
-
+        self.grid = np.zeros((self.domain_size, self.domain_size))
         if initial_condition_type == "random":
             # select random 2D coordinates for S0 cells
             # randmoly set S0 grid points to 1[
@@ -234,6 +249,7 @@ class ABM_model:
                 # cell dies
                 self.grid[cell[0]][cell[1]] = 0
 
+    # TODO make one function for all three types
     def compute_growth_S(self):
         # get all cells with S
         cells = np.argwhere(self.grid == self.sensitive_type)
@@ -352,15 +368,10 @@ class ABM_model:
             raise ValueError("Therapy type not recognized")
 
     def get_data(self):
-        # get data
         return self.data
 
     # PLOTTING FUNCTIONS
     def plot_grid(self):
-        # plot the grid in different colors for S and R
-        # make scatter plot
-        # plot the grid in different colors for S and R
-        # make scatter plot
         fig, ax = plt.subplots()
         sensitiveLocations = np.argwhere(self.grid == self.sensitive_type)
         resistantLocations = np.argwhere(self.grid == self.resistant_type)
@@ -412,7 +423,6 @@ class ABM_model:
             return None, None, None
         fig, ax = figax
         nFrames = self.T - 1
-        print(f"{self.location_data[1].shape=}")
         sensitiveLocations = self.location_data[1][self.location_data[1][:, 2] == 1, :2]
         resistantLocations = self.location_data[1][self.location_data[1][:, 2] == 2, :2]
         scale = 60000 / self.domain_size
@@ -470,7 +480,7 @@ class ABM_model:
         anim = animation.FuncAnimation(fig, update, self.T - 1, interval=interval)
         return fig, ax, anim
 
-    def animate_cells_graph(self, interval=20):
+    def animate_cells_graph(self, interval=20, stride=1):
         fig, ax = plt.subplots(1, 2)
         fig.set_size_inches(10, 7)
         j = 2
@@ -484,7 +494,7 @@ class ABM_model:
         ax[0].legend()
 
         nFrames = self.T - 1
-        print(f"{self.location_data[1].shape=}")
+        # print(f"{self.location_data[1].shape=}")
         sensitiveLocations = self.location_data[1][self.location_data[1][:, 2] == self.sensitive_type, :2]
         resistantLocations = self.location_data[1][self.location_data[1][:, 2] == self.resistant_type, :2]
         normalLocations = self.location_data[1][self.location_data[1][:, 2] == self.normal_type, :2]
@@ -517,7 +527,8 @@ class ABM_model:
         ax[1].axis("equal")
         ax[1].axis("off")
         # ax[1].set(xlim=(70,130),ylim=(70,130))
-        def update(i):
+        def update(j):
+            i = j * stride
             lineS.set_data(np.arange(1, i), self.data[1:i, 0])
             lineR.set_data(np.arange(1, i), self.data[1:i, 1])
             lineN.set_data(np.arange(1, i), self.data[1:i, 2])
@@ -536,7 +547,7 @@ class ABM_model:
             sN.set_offsets(normalLocations)
 
         anim = animation.FuncAnimation(
-            fig=fig, func=update, frames=nFrames, interval=interval
+            fig=fig, func=update, frames=nFrames//stride, interval=interval
         )
         return fig, ax, anim
 
@@ -559,11 +570,7 @@ if __name__ == "__main__":
     "S0" : 200,
     "R0" : 10,
     "N0" : 0,
-<<<<<<< HEAD:AMB_model.py
-    "grS" : 0.028,
-=======
     "grS" : 0.023,
->>>>>>> 41044776f359a7fafb9fb685b02003458011efe8:ABM_model.py
     "grR" : 0.023,
     "grN" : 0.005,
     "drS" : 0.01,
@@ -573,12 +580,9 @@ if __name__ == "__main__":
     "divrN" : 0.5,
     "therapy" : "adaptive",
     "initial_condition_type" : "uniform",
-<<<<<<< HEAD:AMB_model.py
     "save_locations" : False,
-=======
-    "save_locations" : True,
->>>>>>> 41044776f359a7fafb9fb685b02003458011efe8:ABM_model.py
-    "dimension" : 2}
+    "dimension" : 2,
+    "seed" : 0}
 
     # set up model
     model = ABM_model(parameters)
@@ -597,7 +601,7 @@ if __name__ == "__main__":
     plt.show()
 
     if model.save_locations:
-        fig, ax, anim = model.animate_cells_graph()
+        fig, ax, anim = model.animate_cells_graph(stride=10,interval=80)
         anim.save("media/nice_abm.mp4")
 
     # animate data
