@@ -13,7 +13,9 @@ class AMB_model:
         self.S0 = parameters["S0"]
         self.R0 = parameters["R0"]
         self.N0 = parameters["N0"]
+        # BUG why  call this?
         self.domain_size0 = parameters["N0"]
+        
         self.grS = parameters["grS"]
         self.grR = parameters["grR"]
         self.grN = parameters["grN"]
@@ -33,10 +35,13 @@ class AMB_model:
         self.data[0, 0] = np.sum(self.grid == self.sensitive_type)
         self.data[0, 1] = np.sum(self.grid == self.resistant_type)
         self.data[0, 2] = np.sum(self.grid == self.normal_type)
+        self.initial_grid = None
         print(f"Starting with {self.S0} sensitive cells, {self.R0} resistant cells and {self.N0} normal cells.")
         self.data[0, 3] = self.current_therapy
 
         self.save_locations = parameters["save_locations"]
+
+        # BUG why save now we havent initialized?
         if self.save_locations:
             self.location_data = []
             sensitive_location_data = np.append(
@@ -68,6 +73,7 @@ class AMB_model:
             self.grid[location[0], location[1]] = location[2]
 
     def set_initial_condition(self, initial_condition_type):
+
         if initial_condition_type == "random":
             # select random 2D coordinates for S0 cells
             # randmoly set S0 grid points to 1[
@@ -113,7 +119,6 @@ class AMB_model:
                         self.grid[i, j] = self.normal_type           
             # randomly kill surplus cells so there are exactly N_cells cells using np.random.choice
             N_generated = np.sum(self.grid==self.normal_type)
-            print(N_generated)
             cell_locations = np.argwhere(self.grid == self.normal_type)  
             kill_surplus = np.random.choice(cell_locations.shape[0], N_generated - self.N0, replace=False)
             self.grid[cell_locations[kill_surplus, 0], cell_locations[kill_surplus, 1]] = 0
@@ -143,6 +148,9 @@ class AMB_model:
                 self.grid[self.location_indices[i,0],self.location_indices[i,1]] = self.normal_type
         else:
             print("initial condition type not recognized")
+
+        # save initial grid
+        self.initial_grid = self.grid.copy()
 
         # # set up grid
         # grid = np.zeros((self.domain_size, self.domain_size))
@@ -542,17 +550,17 @@ class AMB_model:
         initial_tumor_size = self.S0 + self.R0 + self.N0
         for i in range(self.T):
             total_number = np.sum(self.data[i, :3])
-            print(total_number)
             if total_number > threshold * initial_tumor_size:
                 return i
+        return -1
 
 
 if __name__ == "__main__":
 
     # set up parameters
     parameters = {"domain_size" : 40,
-    "T" : 4000,
-    "dt" : 0.1,
+    "T" : 400,
+    "dt" : 1,
     "S0" : 200,
     "R0" : 10,
     "N0" : 0,
@@ -566,7 +574,7 @@ if __name__ == "__main__":
     "divrN" : 0.5,
     "therapy" : "adaptive",
     "initial_condition_type" : "uniform",
-    "save_locations" : False,
+    "save_locations" : True,
     "dimension" : 2}
 
     # set up model
