@@ -559,7 +559,11 @@ if __name__ == "__main__":
     "S0" : 200,
     "R0" : 10,
     "N0" : 0,
+<<<<<<< HEAD:AMB_model.py
+    "grS" : 0.028,
+=======
     "grS" : 0.023,
+>>>>>>> 41044776f359a7fafb9fb685b02003458011efe8:ABM_model.py
     "grR" : 0.023,
     "grN" : 0.005,
     "drS" : 0.01,
@@ -569,7 +573,11 @@ if __name__ == "__main__":
     "divrN" : 0.5,
     "therapy" : "adaptive",
     "initial_condition_type" : "uniform",
+<<<<<<< HEAD:AMB_model.py
+    "save_locations" : False,
+=======
     "save_locations" : True,
+>>>>>>> 41044776f359a7fafb9fb685b02003458011efe8:ABM_model.py
     "dimension" : 2}
 
     # set up model
