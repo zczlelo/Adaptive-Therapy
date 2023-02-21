@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 
-class AMB_model:
+class ABM_model:
     def __init__(self,parameters):
         self.domain_size = parameters["domain_size"]
         self.T = parameters["T"]
@@ -13,9 +13,6 @@ class AMB_model:
         self.S0 = parameters["S0"]
         self.R0 = parameters["R0"]
         self.N0 = parameters["N0"]
-        # BUG why  call this?
-        self.domain_size0 = parameters["N0"]
-        
         self.grS = parameters["grS"]
         self.grR = parameters["grR"]
         self.grN = parameters["grN"]
@@ -40,8 +37,6 @@ class AMB_model:
         self.data[0, 3] = self.current_therapy
 
         self.save_locations = parameters["save_locations"]
-
-        # BUG why save now we havent initialized?
         if self.save_locations:
             self.location_data = []
             sensitive_location_data = np.append(
@@ -578,7 +573,7 @@ if __name__ == "__main__":
     "dimension" : 2}
 
     # set up model
-    model = AMB_model(parameters)
+    model = ABM_model(parameters)
     # set up initial condition
     model.set_initial_condition(parameters["initial_condition_type"])
     # show grid of initial conditions
@@ -617,7 +612,7 @@ if __name__ == "__main__":
     # for initial_condition_type in initial_conditions_types:
     #     for S0 in S0s:
     #             # set up model
-    #         model = AMB_model(N, T, S0, R0, grS, grR, drS, drR, divrS)
+    #         model = ABM_model(N, T, S0, R0, grS, grR, drS, drR, divrS)
     #             # set up initial condition
     #         model.set_initial_condition(initial_condition_type)
     #             # show grid of initial conditions

@@ -1,4 +1,4 @@
-from ABM_model import AMB_model
+from ABM_model import ABM_model
 from ode_model import ode_model
 import numpy as np
 
@@ -62,8 +62,8 @@ if __name__ == "__main__":
             time_to_progression_ODE = T_ode[i]
             break
     
-    # calculate time to progression for the AMB model
-    model = AMB_model(ABM_parameters)
+    # calculate time to progression for the ABM model
+    model = ABM_model(ABM_parameters)
     model.set_initial_condition(ABM_parameters["initial_condition_type"])
 
     times_to_progressions = []
@@ -78,7 +78,7 @@ if __name__ == "__main__":
         # reset grid
         model.reset_grid()
 
-    # calculate how many times the AMB model did not progress
+    # calculate how many times the ABM model did not progress
     not_progressed = times_to_progressions.count(-1)
     # remove -1 from list
     times_to_progressions = [x for x in times_to_progressions if x != -1]
@@ -92,7 +92,7 @@ if __name__ == "__main__":
         average_time_to_progression = average_time_to_progression * dt
 
     print('Number of tests: ', test_count)
-    print('Number of times AMB model did not progress: ', not_progressed)
-    print('Average time to progression for AMB model: ', average_time_to_progression)
-    print('Standard deviation of time to progression for AMB model: ', np.std(times_to_progressions))   
+    print('Number of times ABM model did not progress: ', not_progressed)
+    print('Average time to progression for ABM model: ', average_time_to_progression)
+    print('Standard deviation of time to progression for ABM model: ', np.std(times_to_progressions))   
     print('Time to progression for ODE model: ', time_to_progression_ODE)
