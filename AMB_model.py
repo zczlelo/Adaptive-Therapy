@@ -559,7 +559,7 @@ if __name__ == "__main__":
     "T" : 400,
     "S0" : 200,
     "R0" : 10,
-    "N0" : 300,
+    "N0" : 0,
     "grS" : 0.028,
     "grR" : 0.023,
     "grN" : 0.005,
@@ -569,8 +569,8 @@ if __name__ == "__main__":
     "divrS" : 0.75,
     "divrN" : 0.5,
     "therapy" : "adaptive",
-    "initial_condition_type" : "cluster_in_normal",
-    "save_locations" : True,
+    "initial_condition_type" : "uniform",
+    "save_locations" : False,
     "dimension" : 2}
 
     # set up model

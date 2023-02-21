@@ -1,11 +1,12 @@
 from AMB_model import AMB_model
 from ode_model import ode_model
 import numpy as np
+import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
 
     # set up parameter of test
-    test_count = 10
+    test_count = 1
     # dt in times of fraction of day
     dt = 1/24
     # progress threshold as factor of initial tumor size
@@ -13,13 +14,13 @@ if __name__ == "__main__":
 
     ABM_parameters = {
 
-        "domain_size": 100,
-        "T": int(30 * (1/dt)),
-        "S0": 2000,
-        "R0": 20,
+        "domain_size": 40,
+        "T": int(400 * (1/dt)),
+        "S0": 200,
+        "R0": 10,
         "N0": 0,
-        "grS": 0.028 * dt,
-        "grR": 0.23 * dt,
+        "grS": 0.023 * dt,
+        "grR": 0.023 * dt,
         "grN": 0,
         "drS": 0.013 * dt,
         "drR": 0.013 * dt,
@@ -29,9 +30,26 @@ if __name__ == "__main__":
         "dimension": 2,
         "therapy": 'adaptive',
         "save_locations": False,
-        "initial_condition_type": "random"
+        "initial_condition_type": "uniform"
     }
-
+    
+    parameters = {"domain_size" : 40,
+    "T" : 400,
+    "S0" : 200,
+    "R0" : 10,
+    "N0" : 0,
+    "grS" : 0.028,
+    "grR" : 0.023,
+    "grN" : 0.005,
+    "drS" : 0.013,
+    "drR" : 0.013,
+    "drN" : 0.00,
+    "divrS" : 0.75,
+    "divrN" : 0.5,
+    "therapy" : "adaptive",
+    "initial_condition_type" : "uniform",
+    "save_locations" : False,
+    "dimension" : 2}
     # set up parameter of ODE model
     ode_parameters = {
         'time_start': 0,
@@ -64,16 +82,20 @@ if __name__ == "__main__":
     
     # calculate time to progression for the AMB model
     model = AMB_model(ABM_parameters)
-    model.set_initial_condition(ABM_parameters["initial_condition_type"])
+    model.set_initial_condition(parameters["initial_condition_type"])
+    model.plot_grid()
 
     times_to_progressions = []
+    model.run(parameters["therapy"])
+    fig,ax = plt.subplots()
+    print("Plotting first simulation result")
+    model.plot_celltypes_density(ax)
+    plt.show()
 
     for i in range(test_count):
-
         if i == 5:
             print('Halfway there!')
-
-        model.run(ABM_parameters["therapy"])
+        model.run(parameters["therapy"])
         times_to_progressions.append(model.time_to_progression(threshold))
         # reset grid
         model.reset_grid()
@@ -96,3 +118,26 @@ if __name__ == "__main__":
     print('Average time to progression for AMB model: ', average_time_to_progression)
     print('Standard deviation of time to progression for AMB model: ', np.std(times_to_progressions))   
     print('Time to progression for ODE model: ', time_to_progression_ODE)
+
+    # draw plot
+    data = model.data
+    S = data[1:, 0]
+    R = data[1:, 1]
+    total = S + R
+    T = np.arange(0, len(S) * dt, dt)
+
+    # plot S and R of ODE and ABM model against time
+    # plt.plot(T_ode, S_ode, label='S ODE')
+    # plt.plot(T_ode, R_ode, label='R ODE')
+    plt.plot(T, S, label='S ABM')
+    plt.plot(T, R, label='R ABM')
+    plt.plot(T, total, label='Total ABM')
+    plt.xlabel('Time')
+    plt.ylabel('Number of cells')
+    plt.legend()
+    plt.show()
+
+
+    
+
+
